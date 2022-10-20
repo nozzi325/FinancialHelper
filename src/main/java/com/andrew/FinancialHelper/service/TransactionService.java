@@ -34,4 +34,8 @@ public class TransactionService {
     public void deleteTransaction(Long id) {
         transactionRepository.deleteById(id);
     }
+
+    public List<Transaction> getByPeriod(LocalDate start, LocalDate end){
+        return transactionRepository.findTransactionsByLocalDateBetween(start, end);
+    }
 }

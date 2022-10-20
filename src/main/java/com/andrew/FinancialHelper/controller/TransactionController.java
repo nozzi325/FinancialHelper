@@ -1,6 +1,5 @@
 package com.andrew.FinancialHelper.controller;
 
-import com.andrew.FinancialHelper.dto.request.AccountRequest;
 import com.andrew.FinancialHelper.dto.request.TransactionRequest;
 import com.andrew.FinancialHelper.dto.response.TransactionResponse;
 import com.andrew.FinancialHelper.db.entity.Account;
@@ -12,11 +11,13 @@ import com.andrew.FinancialHelper.service.TransactionService;
 
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 
 @AllArgsConstructor
@@ -38,6 +39,16 @@ public class TransactionController {
     @GetMapping("{id}")
     public TransactionResponse getTransactionById(@PathVariable Long id){
         return convertToResponse(transactionService.getTransaction(id));
+    }
+
+    @GetMapping(params = {"start", "end"})
+    List<TransactionResponse> getTransactionByPeriod(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end)
+    {
+        return transactionService.getByPeriod(start, end).stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 
     @PostMapping
