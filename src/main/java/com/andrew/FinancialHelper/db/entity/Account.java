@@ -31,5 +31,6 @@ public class Account {
     private User user;
 
     @OneToMany(mappedBy = "account",orphanRemoval = true)
+    @JsonBackReference
     private List<Transaction> transactionList;
 }
