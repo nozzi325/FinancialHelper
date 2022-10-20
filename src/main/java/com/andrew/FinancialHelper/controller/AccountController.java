@@ -33,7 +33,7 @@ public class AccountController {
     }
 
     @GetMapping("{id}")
-    public AccountResponse getAccount(@PathVariable Long id){
+    public AccountResponse getAccountById(@PathVariable Long id){
         return convertToResponse(accountService.findAccountById(id));
     }
 

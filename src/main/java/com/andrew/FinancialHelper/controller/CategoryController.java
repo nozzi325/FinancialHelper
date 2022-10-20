@@ -30,7 +30,7 @@ public class CategoryController {
     }
 
     @GetMapping("{id}")
-    public CategoryResponse getCategory(@PathVariable Long id){
+    public CategoryResponse getCategoryById(@PathVariable Long id){
         return convertToResponse(categoryService.findCategoryById(id));
     }
 
