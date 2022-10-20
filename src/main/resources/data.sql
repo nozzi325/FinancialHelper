@@ -13,8 +13,8 @@ INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 5000, 'Use
 INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 4000, 'User_3_dummy_account_1',3);
 INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 10, 'User_4_dummy_account_1',4);
 INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 3333, 'User_6_dummy_account_1',6);
-INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 250, 'User_6_dummy_account_1',6);
-INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 2141, 'User_6_dummy_account_1',6);
+INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 250, 'User_6_dummy_account_2',6);
+INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 2141, 'User_6_dummy_account_3',6);
 INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 1200, 'User_5_dummy_account_1',5);
 INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 2000, 'User_7_dummy_account_1',7);
 INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (default, 1000, 'User_8_dummy_account_1',8);
