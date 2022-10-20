@@ -58,7 +58,7 @@ Here are the lists of REST endpoints:
 
 | Endpoint | Method | Description|
 |-----:|-----------| -----| 
-| **createTransaction**| POST| Transfering money from one account to another: `/api/transactions`<br/> *Request body*:<br/> `{"senderId":1, "receiverId":2, "amount":5000.00}`|
+| **transferMoney**| POST| Transfering money from one account to another: `/api/transactions`<br/> *Request body*:<br/> `{"senderId":1, "receiverId":2, "amount":5000.00}`|
 
 
 </details>
