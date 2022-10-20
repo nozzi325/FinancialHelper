@@ -51,14 +51,8 @@ public class TransactionController {
         return ResponseEntity.ok(HttpStatus.CREATED);
     }
 
-    @PutMapping
-    public ResponseEntity<HttpStatus> updateAccount(@RequestBody @Valid AccountRequest accountRequest){
-
-        return ResponseEntity.ok(HttpStatus.NO_CONTENT);
-    }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteTrasnaction(@PathVariable Long id){
+    public ResponseEntity<HttpStatus> deleteTransaction(@PathVariable Long id){
         transactionService.deleteTransaction(id);
         return ResponseEntity.ok(HttpStatus.OK);
     }
