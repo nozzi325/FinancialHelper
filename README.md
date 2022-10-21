@@ -35,7 +35,8 @@ Here are the lists of REST endpoints:
 |-----:|-----------| -----| 
 | **getAllTransactions**| GET| Retrieving list of all transactions: `/api/transactions`|
 | **getTransactionById**| GET| Retrieving information about specified transaction by **Id** : `/api/transactions/{id}`|
-| **getTransactionByPeriod**| GET| Retrieving information about all transactions between certain dates : <br/>`/api/transactions?start=2022-10-16&end=2022-10-17`|
+| **getTransactionsByPeriod**| GET| Retrieving information about all transactions between certain dates : <br/>`/api/transactions?start=2022-10-16&end=2022-10-17`|
+| **getTransactionsByCategory**| GET| Retrieving information about all transactions with certain category : <br/>`/api/transactions?categoryId=1`|
 | **createTransaction**| POST| Creating new transaction : `/api/transactions`<br/> *Request body*:<br/> `{"result":5000.00, "accountId":1, "categoryId": 2}`|
 | **deleteTransaction**| DELETE| Deleting an existing transaction by **Id** : `/api/transactions/{id}` |
 
