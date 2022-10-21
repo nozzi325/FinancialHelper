@@ -2,6 +2,7 @@ package com.andrew.FinancialHelper.service;
 
 import com.andrew.FinancialHelper.db.entity.User;
 import com.andrew.FinancialHelper.db.repository.UserRepository;
+import com.andrew.FinancialHelper.exception.CategoryNotFoundException;
 import com.andrew.FinancialHelper.exception.UserEmailAlreadyTakenException;
 import com.andrew.FinancialHelper.exception.UserNotFoundException;
 import lombok.AllArgsConstructor;
@@ -39,7 +40,10 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id){
-        findUserById(id);
+        var exist = userRepository.existsById(id);
+        if (!exist){
+            throw new UserNotFoundException(String.format("User with id %d not found", id));
+        }
         userRepository.deleteById(id);
     }
 

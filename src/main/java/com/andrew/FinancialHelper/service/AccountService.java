@@ -30,13 +30,19 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(Long id){
-        findAccountById(id);
+        var exist = accountRepository.existsById(id);
+        if (!exist){
+            throw new AccountNotFoundException(String.format("Account with id %d not found", id));
+        }
         accountRepository.deleteById(id);
     }
 
     @Transactional
     public void updateAccount(Account account){
-        findAccountById(account.getId());
+        var exist = accountRepository.existsById(account.getId());
+        if (!exist){
+            throw new AccountNotFoundException(String.format("Account with id %d not found", account.getId()));
+        }
         accountRepository.save(account);
     }
 }
