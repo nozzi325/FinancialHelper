@@ -10,12 +10,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
+
 @RestControllerAdvice
 public class ControllerExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorDetails> exceptionNotFoundHandler(NotFoundException e) {
         ErrorDetails errorDetails = new ErrorDetails();
         errorDetails.setMessage(e.getMessage());
+        errorDetails.setTimestamp(LocalDateTime.now());
         return ResponseEntity
                 .badRequest()
                 .body(errorDetails);
@@ -25,6 +28,7 @@ public class ControllerExceptionHandler {
     public ResponseEntity<ErrorDetails> exceptionInsufficientFundsHandler(InsufficientFundsException e) {
         ErrorDetails errorDetails = new ErrorDetails();
         errorDetails.setMessage(e.getMessage());
+        errorDetails.setTimestamp(LocalDateTime.now());
         return ResponseEntity
                 .badRequest()
                 .body(errorDetails);
@@ -34,6 +38,7 @@ public class ControllerExceptionHandler {
     public ResponseEntity<ErrorDetails> exceptionUserEmailAlreadyTakenHandler(UserEmailAlreadyTakenException e) {
         ErrorDetails errorDetails = new ErrorDetails();
         errorDetails.setMessage(e.getMessage());
+        errorDetails.setTimestamp(LocalDateTime.now());
         return ResponseEntity
                 .badRequest()
                 .body(errorDetails);
@@ -47,6 +52,7 @@ public class ControllerExceptionHandler {
             errMessage.append(String.format("%s; ",fieldError.getDefaultMessage()));
         }
         errorDetails.setMessage(String.valueOf(errMessage).trim());
+        errorDetails.setTimestamp(LocalDateTime.now());
         return ResponseEntity
                 .badRequest()
                 .body(errorDetails);
