@@ -2,6 +2,7 @@ package com.andrew.FinancialHelper.service;
 
 import com.andrew.FinancialHelper.db.entity.Transaction;
 import com.andrew.FinancialHelper.db.repository.TransactionRepository;
+import com.andrew.FinancialHelper.exception.CategoryNotFoundException;
 import com.andrew.FinancialHelper.exception.TransactionNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,10 @@ public class TransactionService {
         transactionRepository.save(transaction);
     }
     public void deleteTransaction(Long id) {
+        var exist = transactionRepository.existsById(id);
+        if (!exist){
+            throw new TransactionNotFoundException(String.format("Transaction with id %d not found", id));
+        }
         transactionRepository.deleteById(id);
     }
 

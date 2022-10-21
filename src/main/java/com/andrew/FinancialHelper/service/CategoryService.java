@@ -3,6 +3,7 @@ package com.andrew.FinancialHelper.service;
 
 import com.andrew.FinancialHelper.db.entity.Category;
 import com.andrew.FinancialHelper.db.repository.CategoryRepository;
+import com.andrew.FinancialHelper.exception.AccountNotFoundException;
 import com.andrew.FinancialHelper.exception.CategoryNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,13 +32,19 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(Long id){
-        findCategoryById(id);
+        var exist = categoryRepository.existsById(id);
+        if (!exist){
+            throw new CategoryNotFoundException(String.format("Category with id %d not found", id));
+        }
         categoryRepository.deleteById(id);
     }
 
     @Transactional
     public void updateCategory(Category category){
-        findCategoryById(category.getId());
+        var exist = categoryRepository.existsById(category.getId());
+        if (!exist){
+            throw new CategoryNotFoundException(String.format("Category with id %d not found", category.getId()));
+        }
         categoryRepository.save(category);
     }
 }
