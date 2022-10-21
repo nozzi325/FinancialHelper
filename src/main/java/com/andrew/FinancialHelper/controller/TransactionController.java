@@ -42,11 +42,18 @@ public class TransactionController {
     }
 
     @GetMapping(params = {"start", "end"})
-    List<TransactionResponse> getTransactionByPeriod(
+    public List<TransactionResponse> getTransactionsByPeriod(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end)
     {
-        return transactionService.getByPeriod(start, end).stream()
+        return transactionService.getTransactionsByPeriod(start, end).stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
+
+    @GetMapping(params = "categoryId")
+    public List<TransactionResponse> getTransactionsByCategory(@RequestParam("categoryId") Long id){
+        return transactionService.getTransactionsByCategoryId(id).stream()
                 .map(this::convertToResponse)
                 .toList();
     }

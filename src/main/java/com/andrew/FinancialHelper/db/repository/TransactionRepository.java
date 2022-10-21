@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findTransactionsByLocalDateBetween(LocalDate start, LocalDate end);
+
+    List<Transaction> findTransactionsByCategory_Id(Long id);
 }

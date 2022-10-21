@@ -35,7 +35,11 @@ public class TransactionService {
         transactionRepository.deleteById(id);
     }
 
-    public List<Transaction> getByPeriod(LocalDate start, LocalDate end){
+    public List<Transaction> getTransactionsByPeriod(LocalDate start, LocalDate end){
         return transactionRepository.findTransactionsByLocalDateBetween(start, end);
+    }
+
+    public List<Transaction> getTransactionsByCategoryId(Long id){
+        return transactionRepository.findTransactionsByCategory_Id(id);
     }
 }
