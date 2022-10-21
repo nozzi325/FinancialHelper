@@ -1,6 +1,11 @@
 # FinancialHelper
-The main goal of this project is to master the basic skills of working with Spring Boot and create a REST API service.
+The main goals of this project are:
+- create **CRUD** application
+- get knowledge of Spring Boot
+- get practical experience of working with Spring Data JPA (Hibernate)
+- create simple **REST API** service
 
+## API
 Here are the lists of REST endpoints:
 <details>
 <summary>Users</summary>
