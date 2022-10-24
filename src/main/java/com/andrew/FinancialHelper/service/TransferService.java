@@ -27,15 +27,15 @@ public class TransferService {
         if (sender.getBalance().compareTo(amount) < 0){
             throw new InsufficientFundsException("Insufficient funds on the account : " + senderId);
         }
-        BigDecimal senderNewAmount =
+        BigDecimal senderNewBalance =
                 sender.getBalance().subtract(amount);
-        BigDecimal receiverNewAmount =
+        BigDecimal receiverNewBalance =
                 receiver.getBalance().add(amount);
 
         accountRepository
-                .changeAmount(senderId, senderNewAmount);
+                .changeAmount(senderId, senderNewBalance);
         accountRepository
-                .changeAmount(receiverId, receiverNewAmount);
+                .changeAmount(receiverId, receiverNewBalance);
 
         Category transferCategory = categoryService.findCategoryById(1L);
 
