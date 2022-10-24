@@ -30,8 +30,7 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(Long id){
-        var exist = accountRepository.existsById(id);
-        if (!exist){
+        if (!accountRepository.existsById(id)){
             throw new AccountNotFoundException(String.format("Account with id %d not found", id));
         }
         accountRepository.deleteById(id);
@@ -39,8 +38,7 @@ public class AccountService {
 
     @Transactional
     public void updateAccount(Account account){
-        var exist = accountRepository.existsById(account.getId());
-        if (!exist){
+        if (!accountRepository.existsById(account.getId())){
             throw new AccountNotFoundException(String.format("Account with id %d not found", account.getId()));
         }
         accountRepository.save(account);
