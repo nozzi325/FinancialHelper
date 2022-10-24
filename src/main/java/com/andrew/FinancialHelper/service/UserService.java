@@ -28,8 +28,7 @@ public class UserService {
 
     @Transactional
     public void createUser(User user){
-        boolean isExist = userRepository.findUserByEmail(user.getEmail()).isPresent();
-        if (isExist){
+        if (userRepository.findUserByEmail(user.getEmail()).isPresent()){
             throw new UserEmailAlreadyTakenException("User with this email already exists");
         }
         String passwordHash = digestService.hash(user.getPassword());
@@ -39,8 +38,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id){
-        var exist = userRepository.existsById(id);
-        if (!exist){
+        if (!userRepository.existsById(id)){
             throw new UserNotFoundException(String.format("User with id %d not found", id));
         }
         userRepository.deleteById(id);

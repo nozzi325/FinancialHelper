@@ -33,8 +33,7 @@ public class TransactionService {
         transactionRepository.save(transaction);
     }
     public void deleteTransaction(Long id) {
-        var exist = transactionRepository.existsById(id);
-        if (!exist){
+        if (!transactionRepository.existsById(id)){
             throw new TransactionNotFoundException(String.format("Transaction with id %d not found", id));
         }
         transactionRepository.deleteById(id);
