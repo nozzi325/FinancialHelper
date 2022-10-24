@@ -2,7 +2,6 @@ package com.andrew.FinancialHelper.service;
 
 import com.andrew.FinancialHelper.db.entity.User;
 import com.andrew.FinancialHelper.db.repository.UserRepository;
-import com.andrew.FinancialHelper.exception.CategoryNotFoundException;
 import com.andrew.FinancialHelper.exception.UserEmailAlreadyTakenException;
 import com.andrew.FinancialHelper.exception.UserNotFoundException;
 import lombok.AllArgsConstructor;
@@ -49,7 +48,8 @@ public class UserService {
 
     @Transactional
     public void updateUser(User user){
-        User oldUser = findUserById(user.getId());
+        User oldUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %d not found", user.getId())));
         String passwordHash = digestService.hash(user.getPassword());
         user.setPassword(passwordHash);
         user.setAccounts(oldUser.getAccounts());
