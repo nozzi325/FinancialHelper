@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/financialapp
+    username: postgres
+    password: 654321
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  liquibase:
+    change-log: db.changelog/db.changelog-master.xml
+    drop-first: true
+  sql:
+    init:
+      mode: always
