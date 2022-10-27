@@ -1,11 +1,43 @@
 # FinancialHelper
+
+## Overview
 The main goals of this project are:
 - create **CRUD** application
 - get knowledge of Spring Boot
 - get practical experience of working with Spring Data JPA (Hibernate)
 - create simple **REST API** service
 
+**Features:**
+1. Creating users
+2. Creating money accounts for users
+3. Transferring money between accounts
+4. Saving operations information (date, category, amount)
+5. Getting information about transactions by date or category
+6. Getting information about accounts
+
+## Tech Stack
+
+**Core:**
+- Spring Boot
+- Spring Data JPA (Hibernate)
+- PostgreSQL
+- Liquibase
+- Lombok
+
+**Util libraries:**
+- Apache Commons Codec
+- ModelMapper
+
+**Testing:**
+- JUnit 5
+- Mockito
+- H2 DB
+
 ## API
+
+**Postman** collection with all requests:
+[postman_collection.zip](https://github.com/nozzi325/FinancialHelper/files/9882494/postman_collection.zip)
+
 Here are the lists of REST endpoints:
 <details>
 <summary>Users</summary>
