@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd
+		http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+		http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    <changeSet id="1" author="admin">
+        <createTable tableName="app_user">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" unique="true"></constraints>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false" unique="true"></constraints>
+            </column>
+            <column name="password" type="varchar(255)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+        <createTable tableName="app_account">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" unique="true"></constraints>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="balance" type="numeric">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="user_id" type="bigserial">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+        <createTable tableName="app_transaction">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"></constraints>
+            </column>
+            <column name="account_id" type="bigserial">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="category_id" type="bigserial">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="date" type="date">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="result" type="numeric">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+        <createTable tableName="app_category">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"></constraints>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"></constraints>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="app_account" baseColumnNames="user_id" constraintName="accounts_owner" referencedTableName="app_user"
+                                 referencedColumnNames="id"></addForeignKeyConstraint>
+        <addForeignKeyConstraint baseTableName="app_transaction" baseColumnNames="account_id" constraintName="transaction_account_id" referencedTableName="app_account"
+                                 referencedColumnNames="id"></addForeignKeyConstraint>
+        <addForeignKeyConstraint baseTableName="app_transaction" baseColumnNames="category_id" constraintName="transactions_category_id" referencedTableName="app_category"
+                                 referencedColumnNames="id"></addForeignKeyConstraint>
+    </changeSet>
+</databaseChangeLog>
