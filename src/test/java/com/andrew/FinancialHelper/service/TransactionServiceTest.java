@@ -119,4 +119,13 @@ class TransactionServiceTest {
 
         verify(transactionRepository).findTransactionsByCategory_Id(categoryId);
     }
+
+    @Test
+    void shouldGetTransactionsByAccountId() {
+        Long accountId = 1L;
+
+        subj.getTransactionsByAccountId(accountId);
+
+        verify(transactionRepository).findTransactionsByAccountId(accountId);
+    }
 }
