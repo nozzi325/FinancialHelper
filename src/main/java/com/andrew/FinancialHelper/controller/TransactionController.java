@@ -57,6 +57,12 @@ public class TransactionController {
                 .map(this::convertToResponse)
                 .toList();
     }
+    @GetMapping(params = "accountId")
+    public List<TransactionResponse> getTransactionsByAccountId(@RequestParam("accountId") Long id){
+        return transactionService.getTransactionsByAccountId(id).stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
 
     @PostMapping
     public ResponseEntity<HttpStatus> createTransaction(@RequestBody TransactionRequest transactionRequest){
