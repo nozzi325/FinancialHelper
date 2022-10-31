@@ -39,4 +39,16 @@ class TransactionRepositoryTest {
         assertEquals(1,transactions.size());
         assertEquals(categoryId,actualCategoryId);
     }
+
+    @Test
+    void shouldFindTransactionsByAccountId() {
+        //given
+        Long accountId = 2L;
+        //when
+        List<Transaction> transactions = subj.findTransactionsByAccountId(accountId);
+        //then
+        Long actualAccountId = transactions.get(0).getAccount().getId();
+        assertEquals(1,transactions.size());
+        assertEquals(accountId,actualAccountId);
+    }
 }

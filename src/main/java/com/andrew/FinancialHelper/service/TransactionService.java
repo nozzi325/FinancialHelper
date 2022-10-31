@@ -46,4 +46,7 @@ public class TransactionService {
     public List<Transaction> getTransactionsByCategoryId(Long id){
         return transactionRepository.findTransactionsByCategory_Id(id);
     }
+    public List<Transaction> getTransactionsByAccountId(Long id){
+        return transactionRepository.findTransactionsByAccountId(id);
+    }
 }
