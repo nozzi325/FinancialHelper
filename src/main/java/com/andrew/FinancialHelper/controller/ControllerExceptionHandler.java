@@ -1,9 +1,12 @@
 package com.andrew.FinancialHelper.controller;
 
 
-import com.andrew.FinancialHelper.exception.*;
-import com.andrew.FinancialHelper.utils.ErrorDetails;
+import com.andrew.FinancialHelper.exception.InsufficientFundsException;
+import com.andrew.FinancialHelper.exception.NotFoundException;
+import com.andrew.FinancialHelper.exception.UserEmailAlreadyTakenException;
+import com.andrew.FinancialHelper.dto.ErrorDetails;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,50 +14,34 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorDetails> exceptionNotFoundHandler(NotFoundException e) {
-        ErrorDetails errorDetails = new ErrorDetails();
-        errorDetails.setMessage(e.getMessage());
-        errorDetails.setTimestamp(LocalDateTime.now());
+    // TODO: Review the project's exception system to ensure it's well-designed.
+    //  After the review, assess whether additional methods or information are needed in exception handling.
+    //  Consider refactoring to reduce duplicated code in handling methods.
+    @ExceptionHandler({NotFoundException.class, InsufficientFundsException.class, UserEmailAlreadyTakenException.class})
+    public ResponseEntity<ErrorDetails> handleCustomExceptions(Exception e) {
         return ResponseEntity
-                .badRequest()
-                .body(errorDetails);
-    }
-
-    @ExceptionHandler(InsufficientFundsException.class)
-    public ResponseEntity<ErrorDetails> exceptionInsufficientFundsHandler(InsufficientFundsException e) {
-        ErrorDetails errorDetails = new ErrorDetails();
-        errorDetails.setMessage(e.getMessage());
-        errorDetails.setTimestamp(LocalDateTime.now());
-        return ResponseEntity
-                .badRequest()
-                .body(errorDetails);
-    }
-
-    @ExceptionHandler(UserEmailAlreadyTakenException.class)
-    public ResponseEntity<ErrorDetails> exceptionUserEmailAlreadyTakenHandler(UserEmailAlreadyTakenException e) {
-        ErrorDetails errorDetails = new ErrorDetails();
-        errorDetails.setMessage(e.getMessage());
-        errorDetails.setTimestamp(LocalDateTime.now());
-        return ResponseEntity
-                .badRequest()
-                .body(errorDetails);
+                .status(HttpStatus.BAD_REQUEST)
+                .body(createErrorDetails(e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDetails> exceptionMethodArgumentNotValidHandler(MethodArgumentNotValidException e) {
-        ErrorDetails errorDetails = new ErrorDetails();
-        StringBuilder errMessage = new StringBuilder();
-        for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
-            errMessage.append(String.format("%s; ",fieldError.getDefaultMessage()));
-        }
-        errorDetails.setMessage(String.valueOf(errMessage).trim());
-        errorDetails.setTimestamp(LocalDateTime.now());
+        String errorMessage = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining("\n"));
+
         return ResponseEntity
-                .badRequest()
-                .body(errorDetails);
+                .status(HttpStatus.BAD_REQUEST)
+                .body(createErrorDetails(errorMessage));
+    }
+
+    private ErrorDetails createErrorDetails(String message) {
+        return new ErrorDetails(message, LocalDateTime.now());
     }
 }
