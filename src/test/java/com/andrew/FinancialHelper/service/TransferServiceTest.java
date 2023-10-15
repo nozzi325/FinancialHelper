@@ -1,87 +1,144 @@
 package com.andrew.FinancialHelper.service;
 
 import com.andrew.FinancialHelper.db.entity.Account;
+import com.andrew.FinancialHelper.db.entity.Category;
+import com.andrew.FinancialHelper.db.entity.Transaction;
 import com.andrew.FinancialHelper.db.repository.AccountRepository;
+import com.andrew.FinancialHelper.dto.request.TransactionRequest;
 import com.andrew.FinancialHelper.exception.InsufficientFundsException;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(MockitoExtension.class)
 class TransferServiceTest {
-    @InjectMocks TransferService subj;
-    @Mock AccountService accountService;
-    @Mock TransactionService transactionService;
-    @Mock CategoryService categoryService;
-    @Mock AccountRepository accountRepository;
 
-    @Test
-    @DisplayName("Successful money transfer")
-    void shouldTransferMoney(){
-        Account accountSender = new Account();
-        accountSender.setId(1L);
-        accountSender.setBalance(new BigDecimal(1000));
+    @InjectMocks
+    private TransferService transferService;
 
-        Account accountReceiver = new Account();
-        accountReceiver.setId(2L);
-        accountReceiver.setBalance(new BigDecimal(100));
+    @Mock
+    private AccountService accountService;
 
-        when(accountService.findAccountById(accountSender.getId())).thenReturn(accountSender);
-        when(accountService.findAccountById(accountReceiver.getId())).thenReturn(accountReceiver);
+    @Mock
+    private TransactionService transactionService;
 
-        subj.transferMoney(accountSender.getId(),accountReceiver.getId(),new BigDecimal(500));
+    @Mock
+    private CategoryService categoryService;
 
-        verify(accountRepository).changeAmount(accountSender.getId(),new BigDecimal(500));
-        verify(accountRepository).changeAmount(accountReceiver.getId(),new BigDecimal(600));
+    @Mock
+    private AccountRepository accountRepository;
+
+    private static final Long TRANSFER_CATEGORY_ID = 1L;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    @DisplayName("Should throw \"EntityNotFoundException\" exception when senderId is incorrect")
-    void shouldThrowAccountNotFoundExceptionWhenSenderIdIsIncorrect(){
-        when(accountService.findAccountById(1L)).thenThrow(new EntityNotFoundException("Account not found"));
+    void givenSufficientFunds_whenTransferMoney_thenAccountsAndTransactionsAreUpdated() {
+        Account sender = new Account();
+        sender.setId(1L);
+        sender.setBalance(new BigDecimal("100.00"));
 
-        Assertions.assertThrows(EntityNotFoundException.class,
-                () -> subj.transferMoney(1L,2L, new BigDecimal(500)));
+        Account receiver = new Account();
+        receiver.setId(2L);
+        receiver.setBalance(new BigDecimal("50.00"));
+
+        TransactionRequest transactionRequestFrom = new TransactionRequest();
+        transactionRequestFrom.setAccountId(sender.getId());
+        transactionRequestFrom.setCategoryId(TRANSFER_CATEGORY_ID);
+        transactionRequestFrom.setResult(new BigDecimal("-30.00"));
+
+        TransactionRequest transactionRequestTo = new TransactionRequest();
+        transactionRequestTo.setAccountId(receiver.getId());
+        transactionRequestTo.setCategoryId(TRANSFER_CATEGORY_ID);
+        transactionRequestTo.setResult(new BigDecimal("30.00"));
+
+        Mockito.when(accountService.findAccountById(sender.getId())).thenReturn(sender);
+        Mockito.when(accountService.findAccountById(receiver.getId())).thenReturn(receiver);
+        Mockito.when(categoryService.findCategoryById(TRANSFER_CATEGORY_ID)).thenReturn(new Category());
+        Mockito.when(transactionService.createTransaction(transactionRequestFrom)).thenReturn(new Transaction());
+        Mockito.when(transactionService.createTransaction(transactionRequestTo)).thenReturn(new Transaction());
+
+        transferService.transferMoney(sender.getId(), receiver.getId(), new BigDecimal("30.00"));
+
+        assertEquals(new BigDecimal("70.00"), sender.getBalance());
+        assertEquals(new BigDecimal("80.00"), receiver.getBalance());
     }
 
     @Test
-    @DisplayName("Should throw \"EntityNotFoundException\" exception when receiverId is incorrect")
-    void shouldThrowAccountNotFoundExceptionWhenReceiverIdIsIncorrect(){
-        when(accountService.findAccountById(1L)).thenReturn(new Account());
-        when(accountService.findAccountById(2L)).thenThrow(new EntityNotFoundException("Account not found"));
+    void givenInsufficientFunds_whenTransferMoney_thenInsufficientFundsExceptionIsThrown() {
+        Account sender = new Account();
+        sender.setId(1L);
+        sender.setBalance(new BigDecimal("100.00"));
 
-        Assertions.assertThrows(EntityNotFoundException.class,
-                () -> subj.transferMoney(1L,2L, new BigDecimal(500)));
+        Account receiver = new Account();
+        receiver.setId(2L);
+        receiver.setBalance(new BigDecimal("50.00"));
+
+        Mockito.when(accountService.findAccountById(sender.getId())).thenReturn(sender);
+        Mockito.when(accountService.findAccountById(receiver.getId())).thenReturn(receiver);
+
+        // Attempting to transfer more funds than the sender has.
+        BigDecimal transferAmount = new BigDecimal("150.00");
+
+        assertThrows(InsufficientFundsException.class,
+                () -> transferService.transferMoney(sender.getId(), receiver.getId(), transferAmount));
+
+        // Make sure balances are not changed.
+        assertEquals(new BigDecimal("100.00"), sender.getBalance());
+        assertEquals(new BigDecimal("50.00"), receiver.getBalance());
     }
 
     @Test
-    @DisplayName("Should throw \"InsufficientFundsException\" exception " +
-            "when there is not enough money at sender account.")
-    void shouldThrowInsufficientFundsExceptionWhenNotEnoughMoneyOnSenderAccount(){
-        Account accountSender = new Account();
-        accountSender.setId(1L);
-        accountSender.setBalance(new BigDecimal(20));
+    void givenNonExistentSenderAccount_whenTransferMoney_thenEntityNotFoundExceptionIsThrownForSenderAccount() {
+        // Sender account does not exist.
+        Mockito.when(accountService.findAccountById(1L)).thenThrow(new EntityNotFoundException("Account not found"));
 
-        Account accountReceiver = new Account();
-        accountReceiver.setId(2L);
-        accountReceiver.setBalance(new BigDecimal(100));
+        // Receiver account is valid.
+        Account receiver = new Account();
+        receiver.setId(2L);
+        receiver.setBalance(new BigDecimal("50.00"));
+        Mockito.when(accountService.findAccountById(receiver.getId())).thenReturn(receiver);
 
-        when(accountService.findAccountById(accountSender.getId())).thenReturn(accountSender);
-        when(accountService.findAccountById(accountReceiver.getId())).thenReturn(accountReceiver);
+        BigDecimal transferAmount = new BigDecimal("30.00");
 
-        Assertions.assertThrows(InsufficientFundsException.class,
-                () -> subj.transferMoney(accountSender.getId(),accountReceiver.getId(),new BigDecimal(500)));
+        // Verify that EntityNotFoundException is thrown for the sender account.
+        assertThrows(EntityNotFoundException.class,
+                () -> transferService.transferMoney(1L, receiver.getId(), transferAmount));
+
+        // Verify that balances are not changed.
+        assertEquals(new BigDecimal("50.00"), receiver.getBalance());
+    }
+
+    @Test
+    void givenNonExistentReceiverAccount_whenTransferMoney_thenEntityNotFoundExceptionIsThrownForReceiverAccount() {
+        // Sender account is valid.
+        Account sender = new Account();
+        sender.setId(1L);
+        sender.setBalance(new BigDecimal("100.00"));
+        Mockito.when(accountService.findAccountById(sender.getId())).thenReturn(sender);
+
+        // Receiver account does not exist.
+        Mockito.when(accountService.findAccountById(2L)).thenThrow(new EntityNotFoundException("Account not found"));
+
+        BigDecimal transferAmount = new BigDecimal("30.00");
+
+        // Verify that EntityNotFoundException is thrown for the receiver account.
+        assertThrows(EntityNotFoundException.class,
+                () -> transferService.transferMoney(sender.getId(), 2L, transferAmount));
+
+        // Verify that balances are not changed.
+        assertEquals(new BigDecimal("100.00"), sender.getBalance());
     }
 
 }
