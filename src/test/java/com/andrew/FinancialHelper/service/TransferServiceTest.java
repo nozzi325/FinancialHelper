@@ -3,7 +3,6 @@ package com.andrew.FinancialHelper.service;
 import com.andrew.FinancialHelper.db.entity.Account;
 import com.andrew.FinancialHelper.db.repository.AccountRepository;
 import com.andrew.FinancialHelper.exception.InsufficientFundsException;
-import com.andrew.FinancialHelper.exception.UserNotFoundException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 
 import static org.mockito.Mockito.verify;
@@ -47,21 +47,21 @@ class TransferServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw \"AccountNotFound\" exception when senderId is incorrect")
+    @DisplayName("Should throw \"EntityNotFoundException\" exception when senderId is incorrect")
     void shouldThrowAccountNotFoundExceptionWhenSenderIdIsIncorrect(){
-        when(accountService.findAccountById(1L)).thenThrow(new UserNotFoundException("Account not found"));
+        when(accountService.findAccountById(1L)).thenThrow(new EntityNotFoundException("Account not found"));
 
-        Assertions.assertThrows(UserNotFoundException.class,
+        Assertions.assertThrows(EntityNotFoundException.class,
                 () -> subj.transferMoney(1L,2L, new BigDecimal(500)));
     }
 
     @Test
-    @DisplayName("Should throw \"AccountNotFound\" exception when receiverId is incorrect")
+    @DisplayName("Should throw \"EntityNotFoundException\" exception when receiverId is incorrect")
     void shouldThrowAccountNotFoundExceptionWhenReceiverIdIsIncorrect(){
         when(accountService.findAccountById(1L)).thenReturn(new Account());
-        when(accountService.findAccountById(2L)).thenThrow(new UserNotFoundException("Account not found"));
+        when(accountService.findAccountById(2L)).thenThrow(new EntityNotFoundException("Account not found"));
 
-        Assertions.assertThrows(UserNotFoundException.class,
+        Assertions.assertThrows(EntityNotFoundException.class,
                 () -> subj.transferMoney(1L,2L, new BigDecimal(500)));
     }
 
