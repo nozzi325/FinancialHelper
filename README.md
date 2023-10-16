@@ -104,10 +104,10 @@ Follow these steps to run the application on your local machine:
 
 1) #### Clone the Repository
    Clone git repository to your local machine by running the following command in your terminal:
-   `git clone https://github.com/nozzi325/FinancialHelper`
+   <br>`git clone https://github.com/nozzi325/FinancialHelper`
 2) #### Set Environment Variables
    Create an `.env` file in the project's root directory to configure your database connection. You can set the `DB_USER`and `DB_PASSWORD` variables in this file. <br>Alternatively, you can update the `docker-compose.yml` file with the appropriate values for your database.
 
 3) #### Start the Application
    Use Docker Compose to start the application and its dependencies. Run the following command:
-   `docker-compose up`
+   <br>`docker-compose up`
