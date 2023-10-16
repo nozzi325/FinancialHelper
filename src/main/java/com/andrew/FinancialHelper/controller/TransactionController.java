@@ -89,8 +89,4 @@ public class TransactionController {
     private TransactionResponse convertToResponse(Transaction transaction) {
         return modelMapper.map(transaction, TransactionResponse.class);
     }
-
-    private Transaction convertToEntity(TransactionRequest request) {
-        return modelMapper.map(request, Transaction.class);
-    }
 }
