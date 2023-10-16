@@ -1,0 +1,6 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  liquibase:
+    change-log: db.changelog/db.changelog-test.xml
