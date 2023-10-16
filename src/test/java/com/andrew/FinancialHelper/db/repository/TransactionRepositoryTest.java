@@ -5,50 +5,62 @@ import com.andrew.FinancialHelper.db.entity.Transaction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DataJpaTest
+@DataJpaTest(properties = {
+        "spring.test.database.replace=none",
+        "spring.datasource.url=jdbc:tc:postgresql:15-alpine:///transactions"
+})
+@ActiveProfiles("test")
 @Sql(scripts={"classpath:data/TransactionRepositoryTest.sql"})
 class TransactionRepositoryTest {
-    @Autowired TransactionRepository subj;
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @Test
     void shouldFindTransactionsByLocalDatePeriods() {
-        //given
+        // Given
         LocalDate start = LocalDate.parse("2022-10-11");
         LocalDate end = LocalDate.parse("2022-10-13");
-        //when
-        List<Transaction> transactions = subj.findTransactionsByLocalDateBetween(start, end);
-        //then
-        assertEquals(2,transactions.size());
+
+        // When
+        List<Transaction> transactions = transactionRepository.findTransactionsByLocalDateBetween(start, end);
+
+        // Then
+        assertEquals(2, transactions.size());
     }
 
     @Test
     void shouldFindTransactionsByCategory() {
-        //given
+        // Given
         Long categoryId = 2L;
-        //when
-        List<Transaction> transactions = subj.findTransactionsByCategory_Id(categoryId);
-        //then
+
+        // When
+        List<Transaction> transactions = transactionRepository.findTransactionsByCategory_Id(categoryId);
+
+        // Then
         Long actualCategoryId = transactions.get(0).getCategory().getId();
-        assertEquals(1,transactions.size());
-        assertEquals(categoryId,actualCategoryId);
+        assertEquals(1, transactions.size());
+        assertEquals(categoryId, actualCategoryId);
     }
 
     @Test
     void shouldFindTransactionsByAccountId() {
-        //given
+        // Given
         Long accountId = 2L;
-        //when
-        List<Transaction> transactions = subj.findTransactionsByAccountId(accountId);
-        //then
+
+        // When
+        List<Transaction> transactions = transactionRepository.findTransactionsByAccountId(accountId);
+
+        // Then
         Long actualAccountId = transactions.get(0).getAccount().getId();
-        assertEquals(1,transactions.size());
-        assertEquals(accountId,actualAccountId);
+        assertEquals(1, transactions.size());
+        assertEquals(accountId, actualAccountId);
     }
 }

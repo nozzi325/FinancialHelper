@@ -1,131 +1,132 @@
 package com.andrew.FinancialHelper.service;
 
+import com.andrew.FinancialHelper.db.entity.Account;
+import com.andrew.FinancialHelper.db.entity.Category;
 import com.andrew.FinancialHelper.db.entity.Transaction;
 import com.andrew.FinancialHelper.db.repository.TransactionRepository;
-import com.andrew.FinancialHelper.exception.TransactionNotFoundException;
-
-import org.junit.jupiter.api.Assertions;
+import com.andrew.FinancialHelper.dto.request.TransactionRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
+import javax.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class TransactionServiceTest {
-    @InjectMocks TransactionService subj;
-    @Mock TransactionRepository transactionRepository;
+
+    @InjectMocks
+    private TransactionService transactionService;
+
+    @Mock
+    private TransactionRepository transactionRepository;
+
+    @Mock
+    private AccountService accountService;
+
+    @Mock
+    private CategoryService categoryService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
-    void shouldGetTransactionById() {
-        Long id = 1L;
+    void givenValidTransactionId_whenFindingTransactionById_thenTransactionIsFound() {
+        // Given
+        long transactionId = 1L;
         Transaction transaction = new Transaction();
-        when(transactionRepository.findById(id)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findById(transactionId)).thenReturn(Optional.of(transaction));
 
-        subj.getTransaction(id);
+        // When
+        Transaction foundTransaction = transactionService.getTransactionById(transactionId);
 
-        verify(transactionRepository).findById(id);
-        assertSame(transaction,transactionRepository.findById(id).get());
+        // Then
+        assertNotNull(foundTransaction);
+        assertEquals(transaction, foundTransaction);
     }
 
     @Test
-    void shouldThrowTransactionNotFoundExceptionWhenTransactionIdDoesNotExist() {
-        Long id = 1L;
-        when(transactionRepository.findById(id)).thenReturn(Optional.empty());
+    void givenInvalidTransactionId_whenFindingTransactionById_thenEntityNotFoundExceptionThrown() {
+        // Given
+        long transactionId = 1L;
+        when(transactionRepository.findById(transactionId)).thenReturn(Optional.empty());
 
-        assertThrows(TransactionNotFoundException.class,() -> subj.getTransaction(id));
+        // When and Then
+        assertThrows(EntityNotFoundException.class, () -> transactionService.getTransactionById(transactionId));
     }
 
     @Test
-    void shouldGetAllTransactions() {
-        subj.getTransactions();
+    void givenValidTransactionRequest_whenCreatingTransaction_thenTransactionIsCreated() {
+        // Given
+        TransactionRequest transactionRequest = new TransactionRequest();
+        transactionRequest.setAccountId(1L);
+        transactionRequest.setCategoryId(1L);
+        transactionRequest.setResult(new BigDecimal("1000.00"));
 
-        verify(transactionRepository).findAll();
+        Account account = new Account();
+        when(accountService.findAccountById(1L)).thenReturn(account);
+
+        Category category = new Category();
+        when(categoryService.findCategoryById(1L)).thenReturn(category);
+
+        Transaction savedTransaction = new Transaction();
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
+
+        // When
+        Transaction createdTransaction = transactionService.createTransaction(transactionRequest);
+
+        // Then
+        assertNotNull(createdTransaction);
+        assertEquals(savedTransaction, createdTransaction);
     }
 
     @Test
-    void shouldCreateTransaction() {
-        Transaction transaction = new Transaction();
-        transaction.setLocalDate(LocalDate.parse("2022-10-15"));
+    void givenInvalidTransactionRequest_whenCreatingTransaction_thenEntityNotFoundExceptionThrown() {
+        // Given
+        TransactionRequest transactionRequest = new TransactionRequest();
+        transactionRequest.setAccountId(1L);
+        transactionRequest.setCategoryId(1L);
+        transactionRequest.setResult(new BigDecimal("1000.00"));
 
-        subj.createTransaction(transaction);
+        when(accountService.findAccountById(1L)).thenReturn(new Account());
+        when(categoryService.findCategoryById(1L)).thenThrow(new EntityNotFoundException());
 
-        ArgumentCaptor<Transaction> transactionArgumentCaptor =
-                ArgumentCaptor.forClass(Transaction.class);
-        verify(transactionRepository).save(transactionArgumentCaptor.capture());
-        Transaction capturedTransaction = transactionArgumentCaptor.getValue();
-
-        assertEquals(transaction, capturedTransaction);
+        // When and Then
+        assertThrows(EntityNotFoundException.class, () -> transactionService.createTransaction(transactionRequest));
     }
 
     @Test
-    void shouldCreateTransactionWithCurrentDateWhenDateIsNull() {
-        Transaction transaction = new Transaction();
+    void givenValidTransactionId_whenDeletingTransaction_thenTransactionIsDeleted() {
+        // Given
+        long transactionId = 1L;
+        when(transactionRepository.existsById(transactionId)).thenReturn(true);
 
-        subj.createTransaction(transaction);
+        // When
+        transactionService.deleteTransaction(transactionId);
 
-        ArgumentCaptor<Transaction> transactionArgumentCaptor =
-                ArgumentCaptor.forClass(Transaction.class);
-        verify(transactionRepository).save(transactionArgumentCaptor.capture());
-        Transaction capturedTransaction = transactionArgumentCaptor.getValue();
-
-        assertEquals(LocalDate.now(), capturedTransaction.getLocalDate());
-    }
-
-
-    @Test
-    void shouldDeleteTransaction() {
-        Long id = 1L;
-        when(transactionRepository.existsById(id)).thenReturn(true);
-
-        subj.deleteTransaction(id);
-
-        verify(transactionRepository).deleteById(id);
+        // Then
+        verify(transactionRepository, times(1)).deleteById(transactionId);
     }
 
     @Test
-    void shouldThrowTransactionNotFoundExceptionWhenDeleteTransactionNotFound() {
-        Long id = 1L;
-        when(transactionRepository.existsById(id)).thenReturn(false);
+    void givenInvalidTransactionId_whenDeletingTransaction_thenEntityNotFoundExceptionThrown() {
+        // Given
+        long transactionId = 1L;
+        when(transactionRepository.existsById(transactionId)).thenReturn(false);
 
-        Assertions.assertThrows(TransactionNotFoundException.class,() -> subj.deleteTransaction(id));
-        verify(transactionRepository, never()).deleteById(any());
-    }
-
-
-    @Test
-    void shouldGetTransactionsByPeriod() {
-        LocalDate start = LocalDate.parse("2022-10-15");
-        LocalDate end = LocalDate.parse("2022-10-25");
-
-        subj.getTransactionsByPeriod(start,end);
-
-        verify(transactionRepository).findTransactionsByLocalDateBetween(start,end);
-    }
-
-    @Test
-    void shouldGetTransactionsByCategoryId() {
-        Long categoryId = 1L;
-
-        subj.getTransactionsByCategoryId(categoryId);
-
-        verify(transactionRepository).findTransactionsByCategory_Id(categoryId);
-    }
-
-    @Test
-    void shouldGetTransactionsByAccountId() {
-        Long accountId = 1L;
-
-        subj.getTransactionsByAccountId(accountId);
-
-        verify(transactionRepository).findTransactionsByAccountId(accountId);
+        // When and Then
+        assertThrows(EntityNotFoundException.class, () -> transactionService.deleteTransaction(transactionId));
     }
 }

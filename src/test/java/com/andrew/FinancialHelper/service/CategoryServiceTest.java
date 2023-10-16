@@ -2,111 +2,128 @@ package com.andrew.FinancialHelper.service;
 
 import com.andrew.FinancialHelper.db.entity.Category;
 import com.andrew.FinancialHelper.db.repository.CategoryRepository;
-import com.andrew.FinancialHelper.exception.CategoryNotFoundException;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
-    @InjectMocks CategoryService subj;
-    @Mock CategoryRepository categoryRepository;
 
-    @Test
-    void shouldGetAllCategories() {
-        subj.getAllCategories();
+    @InjectMocks
+    private CategoryService categoryService;
 
-        verify(categoryRepository).findAll();
+    @Mock
+    private CategoryRepository categoryRepository;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void shouldGetCategoryById() {
-        Long id = 1L;
+    void givenValidCategoryId_whenFindingCategoryById_thenCategoryIsFound() {
+        // Given
+        long categoryId = 1L;
         Category category = new Category();
-        when(categoryRepository.findById(id)).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
-        subj.findCategoryById(id);
+        // When
+        Category foundCategory = categoryService.findCategoryById(categoryId);
 
-        verify(categoryRepository).findById(id);
-        assertSame(category,categoryRepository.findById(id).get());
+        // Then
+        assertNotNull(foundCategory);
+        assertEquals(category, foundCategory);
     }
 
     @Test
-    void shouldThrowCategoryNotFoundExceptionWhenCategoryIdDoesNotExist() {
-        Long id = 1L;
-        when(categoryRepository.findById(id)).thenReturn(Optional.empty());
+    void givenInvalidCategoryId_whenFindingCategoryById_thenEntityNotFoundExceptionThrown() {
+        // Given
+        long categoryId = 1L;
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
-        assertThrows(CategoryNotFoundException.class,() -> subj.findCategoryById(id));
+        // When and Then
+        assertThrows(EntityNotFoundException.class, () -> categoryService.findCategoryById(categoryId));
     }
 
     @Test
-    void shouldDeleteCategory() {
-        Long id = 1L;
-        when(categoryRepository.existsById(id)).thenReturn(true);
-
-        subj.deleteCategory(id);
-
-        verify(categoryRepository).deleteById(id);
-    }
-
-    @Test
-    void shouldCreateCategory() {
+    void givenValidCategory_whenCreatingCategory_thenCategoryIsCreated() {
+        // Given
         Category category = new Category();
+        category.setName("Test Category");
 
-        subj.createCategory(category);
+        Category savedCategory = new Category();
+        when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
 
-        ArgumentCaptor<Category> categoryArgumentCaptor =
-                ArgumentCaptor.forClass(Category.class);
-        verify(categoryRepository).save(categoryArgumentCaptor.capture());
-        Category capturedCategory = categoryArgumentCaptor.getValue();
-        assertEquals(category, capturedCategory);
+        // When
+        Category createdCategory = categoryService.createCategory(category);
+
+        // Then
+        assertNotNull(createdCategory);
+        assertEquals(savedCategory, createdCategory);
     }
 
     @Test
-    void shouldThrowCategoryNotFoundExceptionWhenDeleteCategoryNotFound() {
-        Long id = 1L;
-        when(categoryRepository.existsById(id)).thenReturn(false);
-
-        Assertions.assertThrows(CategoryNotFoundException.class,() -> subj.deleteCategory(id));
-        verify(categoryRepository, never()).deleteById(any());
-    }
-
-    @Test
-    void shouldUpdateCategory() {
-        Long id = 1L;
+    void givenValidCategory_whenUpdatingCategory_thenCategoryIsUpdated() {
+        // Given
         Category category = new Category();
-        category.setId(id);
-        when(categoryRepository.existsById(id)).thenReturn(true);
+        category.setId(1L);
+        category.setName("Updated Category");
 
-        subj.updateCategory(category);
+        Category existingCategory = new Category();
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(existingCategory));
+        when(categoryRepository.save(any(Category.class))).thenReturn(existingCategory);
 
-        ArgumentCaptor<Category> categoryArgumentCaptor =
-                ArgumentCaptor.forClass(Category.class);
-        verify(categoryRepository).save(categoryArgumentCaptor.capture());
-        Category capturedCategory = categoryArgumentCaptor.getValue();
-        assertEquals(category, capturedCategory);
+        // When
+        categoryService.updateCategory(category);
+
+        // Then
+        assertEquals("Updated Category", existingCategory.getName());
     }
 
     @Test
-    void shouldThrowCategoryNotFoundExceptionWhenUpdateCategoryNotFound() {
-        Long id = 1L;
+    void givenInvalidCategory_whenUpdatingCategory_thenEntityNotFoundExceptionThrown() {
+        // Given
         Category category = new Category();
-        category.setId(id);
-        when(categoryRepository.existsById(id)).thenReturn(false);
+        category.setId(1L);
 
-        assertThrows(CategoryNotFoundException.class,() -> subj.updateCategory(category));
-        verify(categoryRepository, never()).save(any());
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // When and Then
+        assertThrows(EntityNotFoundException.class, () -> categoryService.updateCategory(category));
+    }
+
+    @Test
+    void givenValidCategoryId_whenDeletingCategory_thenCategoryIsDeleted() {
+        // Given
+        long categoryId = 1L;
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+
+        // When
+        categoryService.deleteCategory(categoryId);
+
+        // Then
+        verify(categoryRepository, times(1)).deleteById(categoryId);
+    }
+
+    @Test
+    void givenInvalidCategoryId_whenDeletingCategory_thenEntityNotFoundExceptionThrown() {
+        // Given
+        long categoryId = 1L;
+        when(categoryRepository.existsById(categoryId)).thenReturn(false);
+
+        // When and Then
+        assertThrows(EntityNotFoundException.class, () -> categoryService.deleteCategory(categoryId));
     }
 }

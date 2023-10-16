@@ -3,60 +3,70 @@ package com.andrew.FinancialHelper.service;
 import com.andrew.FinancialHelper.db.entity.User;
 import com.andrew.FinancialHelper.db.repository.UserRepository;
 import com.andrew.FinancialHelper.exception.UserEmailAlreadyTakenException;
-import com.andrew.FinancialHelper.exception.UserNotFoundException;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
-@AllArgsConstructor
 @Service
 public class UserService {
     private final UserRepository userRepository;
-
     private final DigestService digestService;
 
-    public User findUserById(Long id){
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %d not found", id)));
+    public UserService(UserRepository userRepository, DigestService digestService) {
+        this.userRepository = userRepository;
+        this.digestService = digestService;
     }
 
-    public List<User> findAll(){
+    public User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id %d not found", id)));
+    }
+
+    public List<User> findAll() {
         return userRepository.findAll();
     }
 
     @Transactional
-    public void createUser(User user){
-        if (userRepository.findUserByEmail(user.getEmail()).isPresent()){
+    public User createUser(User user) {
+        if (userRepository.findUserByEmail(user.getEmail()).isPresent()) {
             throw new UserEmailAlreadyTakenException("User with this email already exists");
         }
-        String passwordHash = digestService.hash(user.getPassword());
-        user.setPassword(passwordHash);
-        userRepository.save(user);
+        String hashedPassword = digestService.hash(user.getPassword());
+        user.setPassword(hashedPassword);
+        return userRepository.save(user);
     }
 
     @Transactional
-    public void deleteUser(Long id){
-        if (!userRepository.existsById(id)){
-            throw new UserNotFoundException(String.format("User with id %d not found", id));
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException(String.format("User with id %d not found", id));
         }
         userRepository.deleteById(id);
     }
 
     @Transactional
-    public void updateUser(User user){
-        User oldUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %d not found", user.getId())));
-        String passwordHash = digestService.hash(user.getPassword());
-        user.setPassword(passwordHash);
-        user.setAccounts(oldUser.getAccounts());
-        userRepository.save(user);
+    public User updateUser(User user) {
+        User existingUser = findUserById(user.getId());
+
+        String currentPassword = existingUser.getPassword();
+        String newPassword = digestService.hash(user.getPassword());
+        if (!currentPassword.equals(newPassword)) {
+            existingUser.setPassword(newPassword);
+        }
+
+        String currentEmail = existingUser.getEmail();
+        String newEmail = user.getEmail();
+        if (!currentEmail.equals(newEmail)) {
+            existingUser.setEmail(newEmail);
+        }
+
+       return userRepository.save(existingUser);
     }
 
-    public User findUser(String email){
+    public User findUserByEmail(String email) {
         return userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with email %s not found", email)));
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with email %s not found", email)));
     }
-
 }

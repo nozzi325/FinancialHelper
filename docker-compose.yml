@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: financialapp-postgres-db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=financialapp
+    ports:
+      - "5432:5432"
+    restart: always
+
+  main:
+    image: financial-helper
+    container_name: financial-helper-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/financialapp
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_PROFILES_ACTIVE: prod

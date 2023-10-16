@@ -1,2 +1,2 @@
 INSERT INTO app_user (id, email, password) VALUES (1, 'DummyUser1@dummy.com', '8da960acaf3090eb4b7ff3b853d622be');
-INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (1, 50000, 'DummyAccount',1);
+INSERT INTO app_ACCOUNT (id, balance, name, user_id) VALUES (1, 50000, 'DummyAccount', 1);
