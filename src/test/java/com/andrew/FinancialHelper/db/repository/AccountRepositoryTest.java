@@ -1,32 +1,37 @@
 package com.andrew.FinancialHelper.db.repository;
 
 import com.andrew.FinancialHelper.db.entity.Account;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DataJpaTest
-@Sql(scripts={"classpath:data/AccountRepositoryTest.sql"})
+@DataJpaTest(properties = {
+        "spring.test.database.replace=none",
+        "spring.datasource.url=jdbc:tc:postgresql:15-alpine:///accounts"
+})
+@ActiveProfiles("test")
+@Sql(scripts = "classpath:data/AccountRepositoryTest.sql")
 class AccountRepositoryTest {
-    @Autowired AccountRepository subj;
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Test
     void shouldUpdateAccountBalance() {
-        //given
-        BigDecimal expected = new BigDecimal(50.00).setScale(2);
+        // Given
+        Long accountId = 1L;
+        BigDecimal newBalance = new BigDecimal("50.00");
 
-        //when
-        subj.changeAmount(1L,expected);
+        // When
+        accountRepository.changeAmount(accountId, newBalance);
 
-        //then
-        Account updatedAccount = subj.findById(1L).get();
-        BigDecimal actual = updatedAccount.getBalance().setScale(2);
-        assertEquals(expected,actual);
+        // Then
+        Account updatedAccount = accountRepository.findById(accountId).orElse(null);
+        assertEquals(newBalance, updatedAccount.getBalance());
     }
 }

@@ -1,46 +1,47 @@
 package com.andrew.FinancialHelper.db.repository;
 
 import com.andrew.FinancialHelper.db.entity.User;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Optional;
 
-@DataJpaTest
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@DataJpaTest(properties = {
+        "spring.test.database.replace=none",
+        "spring.datasource.url=jdbc:tc:postgresql:15-alpine:///general"
+})
+@ActiveProfiles("test")
 class UserRepositoryTest {
-    @Autowired UserRepository subj;
+    @Autowired
+    private UserRepository userRepository;
 
-    @AfterEach
-    void tearDown() {
-        subj.deleteAll();
+    @Test
+    void shouldFindUserByEmail() {
+        // Given
+        User user = new User();
+        user.setEmail("testuser@test.com");
+        user.setPassword("password");
+        userRepository.save(user);
+
+        // When
+        Optional<User> foundUser = userRepository.findUserByEmail("testuser@test.com");
+
+        // Then
+        assertTrue(foundUser.isPresent());
+        assertEquals(user.getEmail(), foundUser.get().getEmail());
     }
 
     @Test
-    void shouldReturnUserWhenUserEmailExists() {
-        //given
-        String email = "DummyUser1@dummy.com";
-        User dummyUser = new User();
-        dummyUser.setEmail(email);
-        dummyUser.setPassword("password");
-        subj.save(dummyUser);
+    void shouldNotFindUserByEmail() {
+        // When
+        Optional<User> foundUser = userRepository.findUserByEmail("nonexistent@test.com");
 
-        //when
-        var user = subj.findUserByEmail(email);
-
-        assertTrue(user.isPresent());
-    }
-
-    @Test
-    void shouldNotReturnUserWhenUserEmailDoesNotExist() {
-        //given
-        String email = "DummyUser1@dummy.com";
-
-        //when
-        var user = subj.findUserByEmail(email);
-
-        assertFalse(user.isPresent());
+        // Then
+        assertTrue(foundUser.isEmpty());
     }
 }
